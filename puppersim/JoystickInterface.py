@@ -14,6 +14,7 @@ class JoystickInterface:
 
         self.prev_activate_toggle = False
         self.prev_deactivate_toggle = True
+        self.prev_exit_toggle = True
         self.prev_trot_toggle = True
         self.prev_walk_toggle = False
         self.prev_stand_toggle = True
@@ -32,7 +33,7 @@ class JoystickInterface:
             "lx": 0,
             "rx": 0,
             "ry": 0,
-            # "L2": L2,
+            "L2": 0,
             # "R2": R2,
             "R1": 0,
             "L1": 0,
@@ -52,6 +53,7 @@ class JoystickInterface:
             msg["ly"] = event[4] / 127
             msg["rx"] = event[6] / 127
             msg["L1"] = event[7]
+            msg["L2"] = event[8]
             msg["circle"] = event[9]
             msg["R1"] = event[10]
 
@@ -60,6 +62,7 @@ class JoystickInterface:
         ####### Handle discrete commands ########
         activate_toggle = msg["L1"] > 0
         deactivate_toggle = msg["L1"] < 0
+        exit_toggle = msg["L2"] <= 0
         trot_toggle = msg["circle"] <= 0
         walk_toggle = msg["circle"] > 0
         stand_toggle = msg["R1"] < 0
@@ -77,6 +80,7 @@ class JoystickInterface:
 
         self.prev_activate_toggle = activate_toggle
         self.prev_deactivate_toggle = deactivate_toggle
+        self.prev_exit_toggle = exit_toggle
         self.prev_trot_toggle = trot_toggle
         self.prev_walk_toggle = walk_toggle
         self.prev_stand_toggle = stand_toggle
@@ -88,6 +92,7 @@ class JoystickInterface:
         input_curve = lambda x: np.sign(x) * min(x ** 2, 1)
         x_vel = input_curve(msg["ly"]) * 0.6 #self.config.max_x_velocity
         y_vel = input_curve(msg["lx"]) * 0.8 #-self.config.max_y_velocity
+        command['exit_event'] = exit_toggle and (self.prev_exit_toggle == False)
         command['horizontal_velocity'] = np.array([x_vel, y_vel])
         command['yaw_rate'] = msg["rx"] * 1.2# -self.config.max_yaw_rate
 

@@ -164,7 +164,14 @@ def run_example(num_max_steps=_NUM_STEPS):
   # https://github.com/bulletphysics/bullet3/blob/48dc1c45da685c77d3642545c4851b05fb3a1e8b/examples/pybullet/gym/pybullet_envs/minitaur/robots/quadruped_base.py#L131
   # print("env.action_space=",env.action_space)
   obs = env.reset()
-  input("Press enter to start")
+  try:
+      input("Press enter to start")
+  except EOFError:
+      if FLAGS.run_on_robot:
+          ## running "headless" on the robot
+          pass
+      else:
+          raise
   last_control_step = time.time()
   log_dict = {
       't': [],
@@ -196,6 +203,9 @@ def run_example(num_max_steps=_NUM_STEPS):
       #          keyboard_control, lin_speed, ang_speed)
       #obs['command'] = [lin_speed[0], lin_speed[1], ang_speed]
       joystick_command = joystick_control.get_command(None)
+
+      if joystick_command['exit_event']:
+          break
       obs['command'] = [-joystick_command['horizontal_velocity'][1], -joystick_command['horizontal_velocity'][0], -joystick_command['yaw_rate']]
 
       action = policy.step(obs)
